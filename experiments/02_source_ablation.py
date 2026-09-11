@@ -49,7 +49,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from src.data import load_base_texts, text_level_split, expand_text_indices_to_sample_indices
 from src.model import load_model, get_device_info
 from src.prompts import source_format, SOURCE_CONDITIONS
-from src.activations import extract_hidden_states
+from src.activations import extract_multi_pooling
 from src.probes import train_probe, eval_probe, make_label_encoder, probe_score_distributions
 
 # ---------------------------------------------------------------------------
@@ -112,25 +112,28 @@ def main():
     for idx in random.sample(range(len(all_wrapped)), 3):
         print(f"\n[cond={all_labels[idx]}]\n{all_wrapped[idx][:300]}")
 
-    # Extract with mean_all and content_only
+    # Extract with mean_all and content_only in a single pass
+    print("\nExtracting hidden states (mean_all + content_only single pass)...")
+    features_dict = extract_multi_pooling(
+        model, tokenizer, all_wrapped, layers,
+        poolings=["mean_all", "content_only"],
+        max_len=MAX_SEQ_LEN, device=device,
+        batch_size=4,
+    )
+
+    le = make_label_encoder(SOURCE_CONDITIONS)
+    y = le.transform(all_labels)
+
+    # Text-level split
+    train_text_idx, test_text_idx = text_level_split(base_texts, test_frac=TEST_FRAC, seed=PRIMARY_SEED)
+    train_samples = expand_text_indices_to_sample_indices(train_text_idx, len(SOURCE_CONDITIONS))
+    test_samples  = expand_text_indices_to_sample_indices(test_text_idx,  len(SOURCE_CONDITIONS))
+    assert set(train_samples) & set(test_samples) == set(), "Leakage!"
+
     results_all = {}
     for pooling in ["mean_all", "content_only"]:
-        print(f"\nExtracting hidden states (pooling={pooling})...")
-        features = extract_hidden_states(
-            model, tokenizer, all_wrapped, layers,
-            max_len=MAX_SEQ_LEN, device=device,
-            pooling=pooling, batch_size=4,
-        )
-        print(f"  Feature shape: {features.shape}")
-
-        le = make_label_encoder(SOURCE_CONDITIONS)
-        y = le.transform(all_labels)
-
-        # Text-level split
-        train_text_idx, test_text_idx = text_level_split(base_texts, test_frac=TEST_FRAC, seed=PRIMARY_SEED)
-        train_samples = expand_text_indices_to_sample_indices(train_text_idx, len(SOURCE_CONDITIONS))
-        test_samples  = expand_text_indices_to_sample_indices(test_text_idx,  len(SOURCE_CONDITIONS))
-        assert set(train_samples) & set(test_samples) == set(), "Leakage!"
+        features = features_dict[pooling]
+        print(f"\nEvaluating probes for pooling={pooling} (Feature shape: {features.shape})...")
 
         layer_results = []
         for li, layer_idx in enumerate(layers):

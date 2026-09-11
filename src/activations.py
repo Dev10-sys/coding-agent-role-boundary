@@ -171,6 +171,94 @@ def extract_hidden_states(
 
 
 @torch.no_grad()
+def extract_multi_pooling(
+    model,
+    tokenizer,
+    texts: List[str],
+    layers: List[int],
+    poolings: List[str] = ("mean_all", "content_only"),
+    max_len: int = 128,
+    device: str = "cpu",
+    batch_size: int = 4,
+) -> dict:
+    """
+    Extract pooled hidden states for multiple pooling strategies in a single forward pass.
+    Avoids redundant model forward passes over the same input sequences.
+
+    Returns
+    -------
+    dict mapping pooling_name -> np.ndarray of shape (N, len(layers), hidden_size)
+    """
+    marker_ids = _get_role_marker_ids(tokenizer)
+    features_by_pooling = {p: [] for p in poolings}
+    n = len(texts)
+
+    for start in range(0, n, batch_size):
+        batch = texts[start : start + batch_size]
+        enc = tokenizer(
+            batch,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=max_len,
+        )
+        input_ids = enc["input_ids"].to(device)
+        attention_mask = enc["attention_mask"].to(device)
+
+        outputs = model(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            output_hidden_states=True,
+        )
+        hs_all = outputs.hidden_states
+
+        batch_pools = {p: [] for p in poolings}
+        for layer_idx in layers:
+            hs = hs_all[layer_idx + 1]  # (B, T, D)
+
+            for pooling in poolings:
+                if pooling == "mean_all":
+                    mask = attention_mask.unsqueeze(-1).float()
+                    pooled = (hs * mask).sum(dim=1) / mask.sum(dim=1)
+                elif pooling == "content_only":
+                    content_mask = attention_mask.clone().float()
+                    for b in range(input_ids.shape[0]):
+                        for t in range(input_ids.shape[1]):
+                            tid = input_ids[b, t].item()
+                            if tid in marker_ids:
+                                content_mask[b, t] = 0.0
+                    content_mask_unsq = content_mask.unsqueeze(-1)
+                    denom = content_mask_unsq.sum(dim=1).clamp(min=1.0)
+                    pooled = (hs * content_mask_unsq).sum(dim=1) / denom
+                elif pooling == "last_content":
+                    pooled_list = []
+                    for b in range(input_ids.shape[0]):
+                        last_idx = 0
+                        for t in range(input_ids.shape[1]):
+                            tid = input_ids[b, t].item()
+                            if attention_mask[b, t].item() == 1 and tid not in marker_ids:
+                                last_idx = t
+                        pooled_list.append(hs[b, last_idx, :])
+                    pooled = torch.stack(pooled_list, dim=0)
+                else:
+                    raise ValueError(f"Unknown pooling: {pooling}")
+
+                batch_pools[pooling].append(pooled.float().cpu().numpy())
+
+        for pooling in poolings:
+            features_by_pooling[pooling].append(np.stack(batch_pools[pooling], axis=1))
+
+        if device == "cuda":
+            torch.cuda.empty_cache()
+
+        processed = min(start + batch_size, n)
+        print(f"  Processed {processed}/{n}...", end="\r", flush=True)
+
+    print()
+    return {p: np.concatenate(features_by_pooling[p], axis=0) for p in poolings}
+
+
+@torch.no_grad()
 def extract_single(
     model,
     tokenizer,

@@ -81,6 +81,8 @@ def load_model(
             device = "cpu"
     else:
         print("  No CUDA. Loading on CPU (bfloat16)...")
+        import os
+        torch.set_num_threads(os.cpu_count() or 4)
         model = AutoModelForCausalLM.from_pretrained(
             model_id,
             torch_dtype=torch.bfloat16,

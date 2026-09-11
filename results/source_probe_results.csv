@@ -1,0 +1,9 @@
+layer,layer_fraction,pooling,seed,n_conditions,accuracy,balanced_accuracy,chance_accuracy,above_chance,n_test
+5,0.25,mean_all,42,4,1.0,1.0,0.25,True,96
+11,0.5,mean_all,42,4,1.0,1.0,0.25,True,96
+17,0.75,mean_all,42,4,1.0,1.0,0.25,True,96
+23,1.0,mean_all,42,4,1.0,1.0,0.25,True,96
+5,0.25,content_only,42,4,1.0,1.0,0.25,True,96
+11,0.5,content_only,42,4,1.0,1.0,0.25,True,96
+17,0.75,content_only,42,4,1.0,1.0,0.25,True,96
+23,1.0,content_only,42,4,1.0,1.0,0.25,True,96

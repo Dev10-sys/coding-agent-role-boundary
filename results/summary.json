@@ -56,5 +56,49 @@
       }
     },
     "confound_note": "mean_all accuracy is expected to be high (\u226590%) due to role-name tokens. content_only and last_content accuracies isolate semantic role signal. scramble_control isolates token-only signal."
+  },
+  "experiment_02": {
+    "model_id": "Qwen/Qwen2.5-0.5B-Instruct",
+    "n_base_texts": 120,
+    "n_source_conditions": 4,
+    "source_conditions": [
+      "system_policy",
+      "user_direct",
+      "repo_file",
+      "tool_output"
+    ],
+    "format": "SOURCE: {label}\\nCONTENT:\\n{text}",
+    "layers_probed": [
+      5,
+      11,
+      17,
+      23
+    ],
+    "primary_seed": 42,
+    "device_info": {
+      "platform": "Windows-11-10.0.26340-SP0",
+      "python_version": "3.12.10",
+      "torch_version": "2.14.0+cpu",
+      "transformers_version": "5.17.0",
+      "sklearn_version": "1.9.1",
+      "numpy_version": "2.5.3",
+      "cuda_available": false
+    },
+    "elapsed_seconds": 1211.0,
+    "results_by_pooling": {
+      "mean_all": {
+        "best_layer": 5,
+        "best_accuracy": 1.0,
+        "best_balanced_accuracy": 1.0,
+        "chance": 0.25
+      },
+      "content_only": {
+        "best_layer": 5,
+        "best_accuracy": 1.0,
+        "best_balanced_accuracy": 1.0,
+        "chance": 0.25
+      }
+    },
+    "interpretation_note": "If mean_all >> content_only accuracy, the source label signal is driven by label tokens (SYSTEM_POLICY, USER_INSTRUCTION, etc.), not content representations. If both are >> chance, the model encodes source identity in content activations too."
   }
 }

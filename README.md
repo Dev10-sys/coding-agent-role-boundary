@@ -68,6 +68,25 @@ Linear logistic regression probes evaluated on held-out base texts with strict d
 2. **Boundary Token vs. Semantic Signal:** Stripping explicit role wrapper tokens (`content_only`) reduces accuracy by 5.2%–12.5% across layers, confirming that boundary tokens directly encode lexical identity. Crucially, accuracy remains high (**81.25%–89.58%**), demonstrating that self-attention successfully context-injects role identity into internal content representations.
 3. **Layer Specialization:** On isolated final content tokens (`last_content`), decodability peaks at mid-depth (Layer 11: **80.21%**) before degrading at the final layer (Layer 23: **69.79%**), indicating that representations specialize towards task output rather than role wrappers as depth increases.
 
+### Experiment 02: Source-Controlled Representation Probe
+
+Standardized outer structure across all four conditions (`SOURCE: {label}\nCONTENT:\n{instruction}`) on held-out disjoint base texts (N=120 base texts × 4 conditions = 480 samples; Chance = 25.0%):
+
+| Layer | Depth Fraction | `mean_all` Accuracy | `content_only` Accuracy | Balanced Accuracy | Chance Baseline |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| **Layer 5** | ~25% | **100.0%** | **100.0%** | **100.0%** | 25.0% |
+| **Layer 11** | ~50% | **100.0%** | **100.0%** | **100.0%** | 25.0% |
+| **Layer 17** | ~75% | **100.0%** | **100.0%** | **100.0%** | 25.0% |
+| **Layer 23** | ~100% | **100.0%** | **100.0%** | **100.0%** | 25.0% |
+
+<p align="center">
+  <img src="figures/source_role_scores.png" alt="Source Probe Accuracy" width="700">
+</p>
+
+#### Key Mechanistic Takeaways:
+- **Source Label Decodability:** When the outer prompt wrapper is strictly held constant, the linear probe achieves **100.0%** classification accuracy distinguishing `SYSTEM_POLICY`, `USER_INSTRUCTION`, `REPO_FILE:AGENTS.md`, and `TOOL_OUTPUT:read_file` across all examined depths.
+- **Activation Geometry:** The model residual stream preserves clear linear separability between repository file content and system instructions when labeled as metadata headers.
+
 ---
 
 ## 📂 Repository Structure

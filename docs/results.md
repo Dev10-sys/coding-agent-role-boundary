@@ -58,3 +58,37 @@ The multiclass confusion matrix on the 96 disjoint test samples demonstrates bal
    - This indicates that individual content tokens at the final layer increasingly prioritize next-token prediction and task semantics over container-level role metadata.
 3. **Scramble Control Dynamics:**
    - Arbitrary synthetic tokens (`ROLE_A`..`D`) show lower accuracy at early layers (77.08% vs 96.88%), but reach 87.50% by Layer 23 as the model learns to linearly separate the distinct token embeddings.
+
+---
+
+## 2. Experiment 02: Source-Controlled Representation Probe
+
+### 2.1 Overview and Protocol
+Experiment 02 tests whether source identity can be decoded when prompt wrappers are standardized across all conditions into a single uniform format:
+```
+SOURCE: {source_label}
+CONTENT:
+{instruction}
+```
+Where `source_label` is one of:
+- `SYSTEM_POLICY`
+- `USER_INSTRUCTION`
+- `REPO_FILE:AGENTS.md`
+- `TOOL_OUTPUT:read_file`
+
+The evaluation utilizes 120 base texts × 4 conditions = 480 samples, with a strict disjoint 80/20 text-level split (96 train texts / 384 samples, 24 test texts / 96 samples; Chance = 25.0%).
+
+### 2.2 Quantitative Findings
+
+| Layer | Depth | `mean_all` Accuracy | `content_only` Accuracy | Balanced Accuracy | Chance Baseline |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| **5** | 25% | **100.0%** | **100.0%** | **100.0%** | 25.0% |
+| **11** | 50% | **100.0%** | **100.0%** | **100.0%** | 25.0% |
+| **17** | 75% | **100.0%** | **100.0%** | **100.0%** | 25.0% |
+| **23** | 100% | **100.0%** | **100.0%** | **100.0%** | 25.0% |
+
+### 2.3 Key Insights
+- Standardizing the wrapper eliminates the pilot's outer chat-wrapper artifact (where all inputs were categorized as `tool` simply because the last turn was a tool block).
+- Under controlled formatting, the source metadata label is linearly decoded with 100% accuracy throughout the network.
+- Because Experiment 02 linear probes achieved $\ge 70\%$ balanced accuracy, the prerequisite for **Experiment 05 (Activation Steering Intervention)** is fully met!
+

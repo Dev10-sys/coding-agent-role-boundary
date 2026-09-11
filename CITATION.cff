@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+type: software
+title: "Coding Agent Role Boundary: A Corrected Pilot Study"
+authors:
+  - name: "Dev"
+    alias: "Dev10-sys"
+repository-code: "https://github.com/Dev10-sys/coding-agent-role-boundary"
+url: "https://github.com/Dev10-sys/coding-agent-role-boundary"
+abstract: >
+  A reproducible mechanistic interpretability pilot studying whether coding agents
+  internally represent persistent repository instructions as higher-authority roles
+  due to wording or presentation, even when the actual source is lower-trust workspace
+  content. Includes a corrected probe design, a controlled warning-salience ablation,
+  and a behavioral sandbox with actual tool-call execution.
+keywords:
+  - mechanistic interpretability
+  - prompt injection
+  - role confusion
+  - coding agents
+  - AI safety
+license: MIT
+date-released: "2026-09-11"
+references:
+  - type: article
+    title: "Prompt Injection as Role Confusion"
+    url: "https://arxiv.org/abs/2603.12277"
+    repository-code: "https://github.com/role-confusion/prompt-injection-as-role-confusion"
+    notes: "Commit ec333c40fd43fe991e1ebf66765051b6d7e35784 used as reference"

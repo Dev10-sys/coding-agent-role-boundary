@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.spec
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ML / HuggingFace
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+.cache/
+huggingface_cache/
+model_cache/
+
+# Credentials and secrets
+.env*
+*.key
+*.pem
+secrets.py
+credentials.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Temp / sandbox runtime
+sandbox/tmp/
+sandbox/forbidden.txt
+
+# Large binary results
+*.hdf5
+*.h5
+
+# Test artifacts
+.pytest_cache/
+htmlcov/
+.coverage
+
+data/wikitext_valid.txt

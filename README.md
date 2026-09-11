@@ -46,6 +46,30 @@ Detailed protocol specifications are documented in [`docs/experiment_design.md`]
 
 ---
 
+## 📊 Empirical Results
+
+### Experiment 01: Corrected Role Representation Probe
+
+Linear logistic regression probes evaluated on held-out base texts with strict disjoint partitions (96 train texts / 384 samples, 24 test texts / 96 samples; Chance = 25.0%):
+
+| Layer | Depth Fraction | `mean_all` (Seed 42) | `content_only` (No Role Tokens) | `last_content` (Single End Token) | `scramble_control` (`ROLE_A..D`) | `mean_all` (Seed 99) |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Layer 5** | ~25% | **96.88%** | **89.58%** | **77.08%** | **77.08%** | **94.79%** |
+| **Layer 11** | ~50% | **92.71%** | **84.38%** | **80.21%** | **78.12%** | **92.71%** |
+| **Layer 17** | ~75% | **93.75%** | **81.25%** | **70.83%** | **77.08%** | **90.62%** |
+| **Layer 23** | ~100% | **93.75%** | **88.54%** | **69.79%** | **87.50%** | **94.79%** |
+
+<p align="center">
+  <img src="figures/probe_accuracy.png" alt="Probe Accuracy across Layers" width="700">
+</p>
+
+#### Key Mechanistic Takeaways:
+1. **Resolution of Pilot 100% Confound:** In the pilot, Layer 23 showed 100.0% accuracy due to base-text data leakage and explicit `<|im_start|>`/`<|im_end|>` boundary tokens. Under strict zero-leakage base-text splitting, baseline accuracy settles at **93.75%**.
+2. **Boundary Token vs. Semantic Signal:** Stripping explicit role wrapper tokens (`content_only`) reduces accuracy by 5.2%–12.5% across layers, confirming that boundary tokens directly encode lexical identity. Crucially, accuracy remains high (**81.25%–89.58%**), demonstrating that self-attention successfully context-injects role identity into internal content representations.
+3. **Layer Specialization:** On isolated final content tokens (`last_content`), decodability peaks at mid-depth (Layer 11: **80.21%**) before degrading at the final layer (Layer 23: **69.79%**), indicating that representations specialize towards task output rather than role wrappers as depth increases.
+
+---
+
 ## 📂 Repository Structure
 
 ```text

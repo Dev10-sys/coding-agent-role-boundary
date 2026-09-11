@@ -1,0 +1,60 @@
+{
+  "experiment_01": {
+    "model_id": "Qwen/Qwen2.5-0.5B-Instruct",
+    "n_base_texts": 120,
+    "n_roles": 4,
+    "layers_probed": [
+      5,
+      11,
+      17,
+      23
+    ],
+    "n_layers_total": 24,
+    "test_frac": 0.2,
+    "primary_seed": 42,
+    "robust_seed": 99,
+    "device_info": {
+      "platform": "Windows-11-10.0.26340-SP0",
+      "python_version": "3.12.10",
+      "torch_version": "2.14.0+cpu",
+      "transformers_version": "5.17.0",
+      "sklearn_version": "1.9.1",
+      "numpy_version": "2.5.3",
+      "cuda_available": false
+    },
+    "elapsed_seconds": 10753.7,
+    "results_by_pooling": {
+      "mean_all": {
+        "best_layer": 5,
+        "best_accuracy": 0.96875,
+        "best_balanced_accuracy": 0.96875,
+        "chance": 0.25
+      },
+      "content_only": {
+        "best_layer": 5,
+        "best_accuracy": 0.8958333333333334,
+        "best_balanced_accuracy": 0.8958333333333334,
+        "chance": 0.25
+      },
+      "last_content": {
+        "best_layer": 11,
+        "best_accuracy": 0.8020833333333334,
+        "best_balanced_accuracy": 0.8020833333333334,
+        "chance": 0.25
+      },
+      "scramble_control": {
+        "best_layer": 23,
+        "best_accuracy": 0.875,
+        "best_balanced_accuracy": 0.875,
+        "chance": 0.25
+      },
+      "mean_all_seed99": {
+        "best_layer": 5,
+        "best_accuracy": 0.9479166666666666,
+        "best_balanced_accuracy": 0.9479166666666667,
+        "chance": 0.25
+      }
+    },
+    "confound_note": "mean_all accuracy is expected to be high (\u226590%) due to role-name tokens. content_only and last_content accuracies isolate semantic role signal. scramble_control isolates token-only signal."
+  }
+}

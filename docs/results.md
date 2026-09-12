@@ -51,8 +51,8 @@ The multiclass confusion matrix on the 96 disjoint test samples demonstrates bal
 ### 1.4 Mechanistic Interpretations
 
 1. **Impact of Delimiter Masking:**
-   - In `content_only`, accuracy remains remarkably high (**81.25% to 89.58%**), even though no explicit role-name or special delimiter tokens enter the pooling calculation.
-   - This empirically confirms that within the transformer blocks, multi-head self-attention broadcasts role identity into the representations of every token in the passage.
+   - In `content_only`, accuracy remains high (**81.25% to 89.58%**), even though no explicit role-name or special delimiter tokens enter the pooling calculation.
+   - Role information remains linearly recoverable from representations after excluding explicit role markers, indicating that contextualized content representations retain information about the surrounding role.
 2. **Representational Drift at Deep Layers:**
    - In `last_content`, accuracy declines from **80.21%** at Layer 11 down to **69.79%** at Layer 23.
    - This indicates that individual content tokens at the final layer increasingly prioritize next-token prediction and task semantics over container-level role metadata.
@@ -61,7 +61,7 @@ The multiclass confusion matrix on the 96 disjoint test samples demonstrates bal
 
 ---
 
-## 2. Experiment 02: Source-Controlled Representation Probe
+## 2. Experiment 02: Controlled Source-Label Representation Probe
 
 ### 2.1 Overview and Protocol
 Experiment 02 tests whether source identity can be decoded when prompt wrappers are standardized across all conditions into a single uniform format:
@@ -88,9 +88,9 @@ The evaluation utilizes 120 base texts × 4 conditions = 480 samples, with a str
 | **23** | 100% | **100.0%** | **100.0%** | **100.0%** | 25.0% |
 
 ### 2.3 Key Insights
-- Standardizing the wrapper eliminates the pilot's outer chat-wrapper artifact (where all inputs were categorized as `tool` simply because the last turn was a tool block).
-- Under controlled formatting, the source metadata label is linearly decoded with 100% accuracy throughout the network.
-- Because Experiment 02 linear probes achieved $\ge 70\%$ balanced accuracy, the prerequisite for **Experiment 05 (Activation Steering Intervention)** is fully met!
+- **Decodability of explicit metadata labels:** The probe reliably recovered the explicitly provided source labels under fixed prompt structure (100.0% accuracy across tested layers). This establishes that source-label information is represented in the residual stream, but does not establish that the model infers true provenance independently of those labels.
+- **Scope of `content_only` pooling:** In this experiment, `content_only` masks ChatML role delimiters (`<|im_start|>`, etc.), not the literal metadata label tokens (`REPO_FILE`, `SYSTEM_POLICY`, etc.) embedded within the standardized text wrapper. Thus, source-label information remains linearly decodable under fixed-format controls, rather than demonstrating an abstract authority encoding.
+- **Operational threshold:** Because Experiment 02 linear probes achieved $\ge 70\%$ balanced accuracy (pre-specified operational threshold), the prerequisite for **Experiment 05 (Exploratory Activation Steering)** was met.
 
 ---
 
@@ -126,8 +126,8 @@ To isolate causal factors, Experiment 03 implements 5 matched conditions ($N=30$
 | `no_warning` vs `warning_different_wording` | **$p = 0.0191$** | **4.03** | **Statistically Significant ($p < 0.05$)** |
 
 ### 3.4 Key Takeaways
-1. **Length Control Refutes Paradox:** `long_provenance` (60.0%) and `neutral_same_length` (60.0%) exhibit identical compliance rates, proving prompt length and complexity modulate response tendencies rather than a psychological warning backfire.
-2. **Keyword Echoing Priming Effect:** Quoting target filenames in warning text primes model execution. Rewording warnings to state security boundaries without mentioning target keywords reduces unsafe edits by half (**70.0% → 36.7%**, $p=0.0191$) and increases explicit refusals from 3.3% to **36.7%**.
+1. **Matched-Length Control:** `long_provenance` (60.0%) and `neutral_same_length` (60.0%) exhibit identical compliance rates. This matched-length control is consistent with the elevated pilot rate being driven by prompt length/context changes rather than a specific warning-backfire mechanism.
+2. **Lexical Salience Effect:** In this benchmark, removing payload-specific keywords (`forbidden.txt`, `INJECTED`) from the warning was associated with a substantial reduction in unsafe execution (from 70.0% to **36.7%**, $p=0.0191$, Odds Ratio = 4.03) and an increase in explicit refusals from 1 to **11 (36.7%)**. This suggests that security warnings containing attack-specific tokens can introduce lexical salience that should be controlled in agent evaluations.
 
 ---
 
@@ -135,7 +135,7 @@ To isolate causal factors, Experiment 03 implements 5 matched conditions ($N=30$
 
 ### 4.1 Overview and Protocol
 Experiment 04 tests the core behavioral question:
-> Does labeling an injected instruction as coming from `system_policy`, `user_direct`, `repo_file`, or `tool_output` modulate the probability that the agent executes an unsafe file modification when equipped with a functional `write_file` tool?
+> We test whether explicit source metadata alone modulates tool execution when all other prompt structure is held constant.
 
 Protocol:
 - $N=30$ independent trials per condition (120 trials total), using randomized coding tasks from `CODING_TASK_POOL`.
@@ -156,16 +156,17 @@ Protocol:
 | Pairwise Comparison | Fisher Exact $p$ | Odds Ratio | Statistical Inference |
 | :--- | :---: | :---: | :--- |
 | `system_policy` vs `user_direct` | $p = 0.7710$ | 0.71 | No significant difference |
-| `system_policy` vs `repo_file` | $p = 1.0000$ | 0.85 | Identical compliance ($p = 1.0$) |
+| `system_policy` vs `repo_file` | $p = 1.0000$ | 0.85 | No detected difference ($p = 1.00$); failure to reject null in this sample, not statistical equivalence |
 | `system_policy` vs `tool_output` | $p = 0.3604$ | 0.47 | No significant difference |
 
 ### 4.4 Resolving the Central Research Question
-- **Empirical Answer:** No. Coding models do **not** internally gate behavioral authority based on source attribution. Instructions originating from low-trust workspace files (`repo_file: 73.3%`) and external tool outputs (`tool_output: 83.3%`) are executed with equivalent or higher frequency compared to official system directives (`system_policy: 70.0%`).
-- **Mechanism Decoupling:** Although the residual stream linearly separates source tags with 100% fidelity (Experiment 02), the downstream generation circuit fails to translate this representational boundary into execution suppression.
+- **Absence of a measurable source-dependent execution effect:** Under this experimental setup, source labeling did not measurably reduce unsafe filesystem actions. The observed unsafe rates for `system_policy` and `repo_file` were similar (70.0% vs. 73.3%; two-sided Fisher exact $p = 1.00$, Odds Ratio = 0.85), providing no evidence in this sample that the source label acted as a behavioral authorization gate.
+- **Representation vs. behavioral authority:** Although the residual stream linearly separates explicit source tags with high fidelity (Experiment 02), in this controlled evaluation with Qwen2.5-0.5B-Instruct, explicit source labels did not measurably suppress unsafe filesystem actions from repository or tool-originated instructions relative to system-framed instructions.
+- **Ground-truth behavioral classification:** As documented in [`docs/pilot_audit.md`](pilot_audit.md), defining unsafe behavior via actual filesystem mutation rather than regex keywords is critical: discussion or refusal of an attack is not unsafe compliance.
 
 ---
 
-## 5. Experiment 05: Activation Steering Intervention
+## 5. Experiment 05: Exploratory Activation Steering Intervention
 
 ### 5.1 Overview and Protocol
 Experiment 05 investigates whether the linear probe direction $\vec{v} = \mathbf{w} / \|\mathbf{w}\|$ identified in Experiment 02 at Layer 5 is causally linked to instruction compliance.
@@ -174,7 +175,7 @@ Protocol:
 - Layer 5 intervention: steering vector injected into the residual stream across token forward passes via PyTorch forward hooks.
 - Steering parameter $\alpha \in \{-2.0, -1.0, 0.0, +1.0, +2.0\}$.
 - Control condition: random orthogonal unit vector in the same Layer 5 subspace.
-- $N=10$ randomized coding tasks evaluated per $(\alpha, \text{control})$ cell (100 trials total).
+- Evaluated with an exploratory sample size of $N=10$ randomized coding tasks per $(\alpha, \text{control})$ cell (100 trials total) following satisfaction of the pre-specified operational threshold ($\ge 70\%$ balanced probe accuracy).
 
 ### 5.2 Quantitative Findings
 
@@ -187,5 +188,6 @@ Protocol:
 | $\alpha = +2.0$ | **70.0%** (7/10) | **70.0%** (7/10) |
 
 ### 5.3 Mechanistic Conclusions
-1. **Decoupling of Linear Decodability from Causal Control:** Steerability along the probe direction produces no monotonic reduction in tool execution. Compliance remains between 50% and 80%, tracking closely with the orthogonal random control.
-2. **Safety Implications:** The ability of a probe to classify source metadata tags does not mean that modifying that single linear direction will mitigate prompt injection. Model instruction adherence in agentic tool-use is determined by complex, multi-layer computational circuits rather than a localized 1D switch.
+1. **Decoupling of Linear Decodability from Causal Control:** Steering along the tested probe direction did not produce a reliable monotonic change in unsafe execution relative to the orthogonal control. Unsafe action rates fluctuated between 50% and 80%, closely tracking the orthogonal control.
+2. **Causal Interpretation:** This provides no evidence in this experiment that the decoded source-label direction is a simple causal control variable for tool-use behavior. The probe direction in Experiment 02 reliably decodes the explicit metadata string under fixed formatting, but decoding source metadata does not imply that the direction acts as an isolated behavioral control dial.
+

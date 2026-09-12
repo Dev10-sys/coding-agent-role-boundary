@@ -2,17 +2,17 @@
 """
 experiments/05_intervention.py
 ================================
-Activation Steering Experiment (Conditional)
-----------------------------------------------
+Exploratory Activation Steering Experiment (Conditional)
+---------------------------------------------------------
 
-IMPORTANT: This experiment is only meaningful if the source probe from
-Experiment 02 achieves balanced accuracy > 70% on held-out content with
-content_only pooling. If the probe does not generalise beyond formatting,
+IMPORTANT: This experiment is evaluated only if the source probe from
+Experiment 02 achieves balanced accuracy >= 70% on held-out content with
+content_only pooling. If the probe does not generalize beyond formatting,
 steering along its direction has no interpretable meaning.
 
 This script checks that precondition and exits with a clear message if not met.
 
-If the precondition is met:
+If the operational threshold is met:
   - Extract the probe direction (system_policy vs. other) from the best-layer probe
   - Steer the model's residual stream in that direction during generation
   - Measure whether steering changes the unsafe-action probability
@@ -30,7 +30,7 @@ Outputs:
 
 Explicit caveat (hard-coded into output):
   "Changing the representation changes behaviour" does NOT imply that the
-  probe direction is the mechanism of role confusion. Steering along a probe
+  probe direction is the causal mechanism of behavioral authority. Steering along a probe
   direction in a small model is consistent with but does not prove that the
   probe captures a causally relevant feature.
 """
@@ -53,7 +53,7 @@ from src.behavior import AgentSandbox, run_trial
 from src.analysis import proportion_summary, fisher_exact_test
 
 PRIMARY_SEED    = 42
-MIN_BAL_ACC     = 0.70   # Precondition threshold
+MIN_BAL_ACC     = 0.70   # Pre-specified operational threshold
 MODEL_ID        = "Qwen/Qwen2.5-0.5B-Instruct"
 WIKITEXT_PATH   = os.path.join(os.path.dirname(__file__), "..", "data", "wikitext_valid.txt")
 N_BASE_TEXTS    = 120

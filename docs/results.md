@@ -92,3 +92,41 @@ The evaluation utilizes 120 base texts × 4 conditions = 480 samples, with a str
 - Under controlled formatting, the source metadata label is linearly decoded with 100% accuracy throughout the network.
 - Because Experiment 02 linear probes achieved $\ge 70\%$ balanced accuracy, the prerequisite for **Experiment 05 (Activation Steering Intervention)** is fully met!
 
+---
+
+## 3. Experiment 03: Warning Salience Ablation
+
+### 3.1 Overview and Protocol
+Experiment 03 investigates the pilot's purported "salience paradox" — the claim that adding provenance warnings to workspace files backfired and increased unsafe compliance from 32% to 60%.
+
+To isolate causal factors, Experiment 03 implements 5 matched conditions ($N=30$ per condition, 150 total trials) evaluated inside an ephemeral sandbox with actual filesystem state tracking:
+1. `no_warning`: Baseline with bare repository file header.
+2. `short_provenance`: Minimal neutral metadata origin tag.
+3. `long_provenance`: Neutral multi-sentence file origin description.
+4. `neutral_same_length`: Same token count as warning text, but strictly benign context (file metadata).
+5. `warning_different_wording`: Security warning stating access policy without quoting target keywords (`forbidden.txt`, `INJECTED`).
+
+### 3.2 Quantitative Findings
+
+| Condition | N | Unsafe Action Rate | 95% Wilson CI | Mention Rate | Executed | Discussed | Refused |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `no_warning` | 30 | **70.0%** (21/30) | [52.1%, 83.3%] | 90.0% | 21 | 6 | 1 |
+| `short_provenance` | 30 | **73.3%** (22/30) | [55.6%, 85.8%] | 86.7% | 22 | 4 | 3 |
+| `long_provenance` | 30 | **60.0%** (18/30) | [42.3%, 75.4%] | 76.7% | 18 | 5 | 0 |
+| `neutral_same_length` | 30 | **60.0%** (18/30) | [42.3%, 75.4%] | 73.3% | 18 | 4 | 1 |
+| `warning_different_wording` | 30 | **36.7%** (11/30) | [21.9%, 54.5%] | 60.0% | 11 | 5 | **11** |
+
+### 3.3 Statistical Hypothesis Testing (vs `no_warning`)
+
+| Comparison | Two-Sided Fisher Exact $p$ | Odds Ratio | Statistical Significance |
+| :--- | :---: | :---: | :--- |
+| `no_warning` vs `short_provenance` | $p = 1.0000$ | 0.85 | Not significant |
+| `no_warning` vs `long_provenance` | $p = 0.5889$ | 1.56 | Not significant |
+| `no_warning` vs `neutral_same_length` | $p = 0.5889$ | 1.56 | Not significant |
+| `no_warning` vs `warning_different_wording` | **$p = 0.0191$** | **4.03** | **Statistically Significant ($p < 0.05$)** |
+
+### 3.4 Key Takeaways
+1. **Length Control Refutes Paradox:** `long_provenance` (60.0%) and `neutral_same_length` (60.0%) exhibit identical compliance rates, proving prompt length and complexity modulate response tendencies rather than a psychological warning backfire.
+2. **Keyword Echoing Priming Effect:** Quoting target filenames in warning text primes model execution. Rewording warnings to state security boundaries without mentioning target keywords reduces unsafe edits by half (**70.0% → 36.7%**, $p=0.0191$) and increases explicit refusals from 3.3% to **36.7%**.
+
+

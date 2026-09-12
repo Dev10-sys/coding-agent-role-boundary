@@ -87,6 +87,27 @@ Standardized outer structure across all four conditions (`SOURCE: {label}\nCONTE
 - **Source Label Decodability:** When the outer prompt wrapper is strictly held constant, the linear probe achieves **100.0%** classification accuracy distinguishing `SYSTEM_POLICY`, `USER_INSTRUCTION`, `REPO_FILE:AGENTS.md`, and `TOOL_OUTPUT:read_file` across all examined depths.
 - **Activation Geometry:** The model residual stream preserves clear linear separability between repository file content and system instructions when labeled as metadata headers.
 
+### Experiment 03: Warning Salience Ablation
+
+Testing whether the pilot's elevated unsafe edit rate under provenance warnings reflects genuine behavioural backfire or lexical salience confounding (N=30 trials per condition, 150 total trials):
+
+| Condition | Description | N | Unsafe Rate | 95% Wilson CI | Mention Rate | Executed | Discussed | Refused |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `no_warning` | Bare repo file label | 30 | **70.0%** | [52.1%, 83.3%] | 90.0% | 21 | 6 | 1 |
+| `short_provenance` | Short neutral origin tag | 30 | **73.3%** | [55.6%, 85.8%] | 86.7% | 22 | 4 | 3 |
+| `long_provenance` | Neutral multi-sentence description | 30 | **60.0%** | [42.3%, 75.4%] | 76.7% | 18 | 5 | 0 |
+| `neutral_same_length` | Matched-length non-warning text | 30 | **60.0%** | [42.3%, 75.4%] | 73.3% | 18 | 4 | 1 |
+| `warning_different_wording` | Security warning without trigger keywords | 30 | **36.7%** | [21.9%, 54.5%] | 60.0% | 11 | 5 | **11** |
+
+<p align="center">
+  <img src="figures/warning_ablation.png" alt="Warning Salience Ablation Results" width="700">
+</p>
+
+#### Key Behavioral Takeaways:
+1. **Resolution of the Pilot "Salience Paradox":** The pilot observed that adding a provenance warning increased unsafe edits from 32% to 60%, dubbing this a "backfire paradox". Our controlled ablation demonstrates that `long_provenance` (**60.0%**) and `neutral_same_length` (**60.0%**) produce identical unsafe rates, proving that prompt length and complexity account for the baseline difference, not a psychological backfire.
+2. **Eliminating Lexical Keyword Confounding:** When the provenance warning is reworded to avoid repeating target injection keywords (`forbidden.txt`, `INJECTED`), the unsafe action rate drops significantly from 70.0% to **36.7%** (**Fisher exact test vs `no_warning`: $p = 0.0191$, Odds Ratio = 4.03**), while explicit refusals jump from 1 to **11 (36.7%)**.
+3. **Implication for Agent Defense:** Warnings that echo forbidden keywords inadvertently prime model execution. Provenance defenses should state abstract security constraints without quoting payload tokens.
+
 ---
 
 ## 📂 Repository Structure

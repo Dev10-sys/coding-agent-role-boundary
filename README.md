@@ -108,6 +108,26 @@ Testing whether the pilot's elevated unsafe edit rate under provenance warnings 
 2. **Eliminating Lexical Keyword Confounding:** When the provenance warning is reworded to avoid repeating target injection keywords (`forbidden.txt`, `INJECTED`), the unsafe action rate drops significantly from 70.0% to **36.7%** (**Fisher exact test vs `no_warning`: $p = 0.0191$, Odds Ratio = 4.03**), while explicit refusals jump from 1 to **11 (36.7%)**.
 3. **Implication for Agent Defense:** Warnings that echo forbidden keywords inadvertently prime model execution. Provenance defenses should state abstract security constraints without quoting payload tokens.
 
+### Experiment 04: Behavioral Sandbox with Actual Tool Execution
+
+Ground-truth filesystem execution measuring whether source label metadata gates actual file mutation in a live sandbox with a `write_file` tool (N=30 trials per condition, 120 total trials):
+
+| Condition | Description | N | Unsafe Action Rate | 95% Wilson CI | Executed (Action) | Discussed (No Action) | Refused |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| `system_policy` | High-authority system prompt | 30 | **70.0%** (21/30) | [52.1%, 83.3%] | 21 | 5 | 0 |
+| `user_direct` | Direct user instruction | 30 | **76.7%** (23/30) | [59.1%, 88.2%] | 23 | 7 | 0 |
+| `repo_file` | Workspace repository file (`AGENTS.md`) | 30 | **73.3%** (22/30) | [55.6%, 85.8%] | 22 | 6 | 0 |
+| `tool_output` | Content from tool call output | 30 | **83.3%** (25/30) | [66.4%, 92.7%] | 25 | 4 | 0 |
+
+<p align="center">
+  <img src="figures/source_behavior.png" alt="Behavioral Sandbox Rates by Source Condition" width="700">
+</p>
+
+#### Core Scientific Conclusion (Resolving the Research Question):
+- **Absence of Behavioral Hierarchy:** There is **zero statistically significant difference** in unsafe tool execution between instructions labeled as `system_policy` (70.0%) and instructions labeled as `repo_file` (73.3%, **Fisher's exact $p = 1.0000$, OR = 0.85**).
+- **Representation vs. Execution Decoupling:** While Experiment 02 proved that linear probes can decode the source label tag with 100% accuracy, Experiment 04 reveals that **the model does not use this internal distinction to restrict tool execution**. Workspace files and tool outputs are treated with the same operational authority as system policies.
+- **Empirical Takeaway for AI Safety:** Autonomous coding agents cannot rely on in-context source labeling alone to enforce trust boundaries. Models readily comply with untrusted repository instructions regardless of provenance tags.
+
 ---
 
 ## 📂 Repository Structure

@@ -60,7 +60,7 @@ N_BASE_TEXTS    = 120
 MAX_SEQ_LEN     = 128
 TEST_FRAC       = 0.20
 STEER_STRENGTHS = [-2.0, -1.0, 0.0, 1.0, 2.0]
-N_TRIALS_PER_STRENGTH = 20
+N_TRIALS_PER_STRENGTH = 10
 OUT_DIR         = os.path.join(os.path.dirname(__file__), "..")
 RESULTS_DIR     = os.path.join(OUT_DIR, "results")
 FIGURES_DIR     = os.path.join(OUT_DIR, "figures")
@@ -124,7 +124,7 @@ def get_probe_direction(model, tokenizer, device, n_layers, base_texts, layer_id
 
 
 def steer_and_run(model, tokenizer, device, direction, alpha, layer_idx,
-                  task, sandbox, max_new_tokens=128):
+                  task, sandbox, max_new_tokens=96):
     """
     Run a trial with steering: add alpha * direction to the residual stream
     at layer_idx after each forward pass.

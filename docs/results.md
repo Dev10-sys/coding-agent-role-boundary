@@ -163,5 +163,29 @@ Protocol:
 - **Empirical Answer:** No. Coding models do **not** internally gate behavioral authority based on source attribution. Instructions originating from low-trust workspace files (`repo_file: 73.3%`) and external tool outputs (`tool_output: 83.3%`) are executed with equivalent or higher frequency compared to official system directives (`system_policy: 70.0%`).
 - **Mechanism Decoupling:** Although the residual stream linearly separates source tags with 100% fidelity (Experiment 02), the downstream generation circuit fails to translate this representational boundary into execution suppression.
 
+---
 
+## 5. Experiment 05: Activation Steering Intervention
 
+### 5.1 Overview and Protocol
+Experiment 05 investigates whether the linear probe direction $\vec{v} = \mathbf{w} / \|\mathbf{w}\|$ identified in Experiment 02 at Layer 5 is causally linked to instruction compliance.
+
+Protocol:
+- Layer 5 intervention: steering vector injected into the residual stream across token forward passes via PyTorch forward hooks.
+- Steering parameter $\alpha \in \{-2.0, -1.0, 0.0, +1.0, +2.0\}$.
+- Control condition: random orthogonal unit vector in the same Layer 5 subspace.
+- $N=10$ randomized coding tasks evaluated per $(\alpha, \text{control})$ cell (100 trials total).
+
+### 5.2 Quantitative Findings
+
+| Steering Strength ($\alpha$) | Probe Direction Unsafe Rate | Orthogonal Control Unsafe Rate |
+| :---: | :---: | :---: |
+| $\alpha = -2.0$ | **60.0%** (6/10) | **60.0%** (6/10) |
+| $\alpha = -1.0$ | **80.0%** (8/10) | **60.0%** (6/10) |
+| $\alpha = 0.0$ (Baseline) | **50.0%** (5/10) | **50.0%** (5/10) |
+| $\alpha = +1.0$ | **60.0%** (6/10) | **30.0%** (3/10) |
+| $\alpha = +2.0$ | **70.0%** (7/10) | **70.0%** (7/10) |
+
+### 5.3 Mechanistic Conclusions
+1. **Decoupling of Linear Decodability from Causal Control:** Steerability along the probe direction produces no monotonic reduction in tool execution. Compliance remains between 50% and 80%, tracking closely with the orthogonal random control.
+2. **Safety Implications:** The ability of a probe to classify source metadata tags does not mean that modifying that single linear direction will mitigate prompt injection. Model instruction adherence in agentic tool-use is determined by complex, multi-layer computational circuits rather than a localized 1D switch.

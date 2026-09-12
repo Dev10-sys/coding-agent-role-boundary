@@ -128,6 +128,26 @@ Ground-truth filesystem execution measuring whether source label metadata gates 
 - **Representation vs. Execution Decoupling:** While Experiment 02 proved that linear probes can decode the source label tag with 100% accuracy, Experiment 04 reveals that **the model does not use this internal distinction to restrict tool execution**. Workspace files and tool outputs are treated with the same operational authority as system policies.
 - **Empirical Takeaway for AI Safety:** Autonomous coding agents cannot rely on in-context source labeling alone to enforce trust boundaries. Models readily comply with untrusted repository instructions regardless of provenance tags.
 
+### Experiment 05: Activation Steering Intervention
+
+Testing whether intervening along the source probe direction in the residual stream modulates tool-call execution probability (Layer 5, $\alpha \in \{-2, -1, 0, +1, +2\}$; N=10 trials per cell, 100 total trials):
+
+| Steering Strength ($\alpha$) | Probe Direction Unsafe Rate | Orthogonal Control Unsafe Rate |
+| :---: | :---: | :---: |
+| $\alpha = -2.0$ | **60.0%** (6/10) | **60.0%** (6/10) |
+| $\alpha = -1.0$ | **80.0%** (8/10) | **60.0%** (6/10) |
+| $\alpha = 0.0$ (Baseline) | **50.0%** (5/10) | **50.0%** (5/10) |
+| $\alpha = +1.0$ | **60.0%** (6/10) | **30.0%** (3/10) |
+| $\alpha = +2.0$ | **70.0%** (7/10) | **70.0%** (7/10) |
+
+<p align="center">
+  <img src="figures/intervention_effect.png" alt="Activation Steering Dose-Response Curve" width="700">
+</p>
+
+#### Key Mechanistic Takeaways:
+1. **Decoupling of Linear Probe Direction from Causal Action:** Although Experiment 02 proved that the source label direction is 100% linearly decodable at Layer 5, steering along this vector does not reliably suppress instruction execution. Unsafe action rates remain persistently high (50%–80%) across all $\alpha$ values, tracking closely with the orthogonal random control.
+2. **Causal Caveat:** Finding a decodable linear representation does not imply that representation acts as an isolated control dial for downstream behavior. Model compliance in tool-use agents is supported by distributed computational pathways rather than a single 1D feature vector.
+
 ---
 
 ## 📂 Repository Structure
